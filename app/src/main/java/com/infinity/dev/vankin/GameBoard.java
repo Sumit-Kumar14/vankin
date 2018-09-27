@@ -10,10 +10,8 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Pair;
 import android.view.View;
-import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.infinity.dev.vankin.GamePresenter.GamePresenter;
 import com.infinity.dev.vankin.Model.DifficultyLevel;
@@ -58,7 +56,7 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        difficultyLevel = DifficultyLevel.EASY;
+        difficultyLevel = SharedPrefsUtils.getGameLevel(this);
 
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN;
@@ -203,6 +201,7 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
     @Override
     public void onOptionSelected(DifficultyLevel difficultyLevel) {
         this.difficultyLevel = difficultyLevel;
+        SharedPrefsUtils.setGameLevel(this, difficultyLevel);
         gamePresenter.reset();
         populateData();
         initUI();
