@@ -2,12 +2,11 @@ package com.infinity.dev.vankin;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Handler;
+import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import android.widget.ImageButton;
@@ -16,6 +15,7 @@ import android.widget.Toast;
 
 import com.infinity.dev.vankin.GamePresenter.GamePresenter;
 import com.infinity.dev.vankin.Model.DifficultyLevel;
+import com.infinity.dev.vankin.Model.DifficultyLevelTimeout;
 import com.infinity.dev.vankin.Model.GridType;
 import com.infinity.dev.vankin.Model.Points;
 
@@ -41,17 +41,11 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
     private TextView tvTimer;
     private ImageButton ibPause;
     private ImageButton ibReset;
-
-    private final int INTERVAL = 1000;
-    private long startTime = 0L;
-
-    private Handler handler = new Handler();
-    private Runnable runnable = new Runnable(){
-        public void run() {
-            setTvTimer(gamePresenter.getTimer(System.currentTimeMillis() - startTime));
-            handler.postDelayed(runnable, INTERVAL);
-        }
-    };
+    private boolean isRightMoveAvailable = true;
+    private boolean isBottomMoveAvailable = true;
+    private boolean isTimedOut = false;
+    private CountDownTimer countDownTimer;
+    private int[][] arr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,8 +62,6 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
         populateData();
 
         initUI();
-
-        handler.postDelayed(runnable, INTERVAL);
     }
 
     private void initUI() {
@@ -91,7 +83,7 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
         setTvGameLevel(gamePresenter.getGameLevel(difficultyLevel));
         setTvGameScore(gamePresenter.getGameScore(score, maxScore));
 
-        startTime = System.currentTimeMillis();
+        initTimer(getDifficultyLevelTimeout(difficultyLevel));
     }
 
     private void setTvGameLevel(String gameLevel) {
@@ -128,7 +120,7 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
             data[i] = point;
         }
 
-        int arr[][] = new int[numberOfRows][numberOfColumns];
+        arr = new int[numberOfRows][numberOfColumns];
 
         for(int i = 0; i < numberOfColumns * numberOfRows; i++) {
             int row = i / numberOfColumns;
@@ -150,10 +142,7 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
     @Override
     public void onItemClick(View view, int position) {
 
-        boolean isRightMoveAvailable = true;
-        boolean isBottomMoveAvailable = true;
-
-        if(data[position].getGridType() == GridType.CLOSED || data[position].getGridType() == GridType.SELECTED)
+        if(data[position].getGridType() == GridType.CLOSED || data[position].getGridType() == GridType.SELECTED || data[position].getGridType() == GridType.GAME_ACTUAL)
             return;
 
         data[position].setGridType(GridType.SELECTED);
@@ -177,20 +166,35 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
             isBottomMoveAvailable = false;
         }
 
-        if(!isRightMoveAvailable && !isBottomMoveAvailable) {
+        checkGameState();
+
+        adapter.notifyDataSetChanged();
+        setTvGameScore(gamePresenter.getGameScore(score, maxScore));
+    }
+
+    private void resetGameState() {
+        isRightMoveAvailable = true;
+        isBottomMoveAvailable = true;
+        isTimedOut = false;
+    }
+
+    private void checkGameState() {
+        if(!isRightMoveAvailable && !isBottomMoveAvailable || isTimedOut) {
+            markAllPositionsClosedExceptSelected(data);
+            stopCountDownTimer(countDownTimer);
             if(score < maxScore) {
                 Toast.makeText(this, "No moves available! You loose", Toast.LENGTH_LONG).show();
+                printPath(gamePresenter.getPath(arr, maxScore));
             }else {
                 Toast.makeText(this, "You found the path!", Toast.LENGTH_LONG).show();
             }
         }
 
         if(score >= maxScore) {
+            markAllPositionsClosedExceptSelected(data);
+            stopCountDownTimer(countDownTimer);
             Toast.makeText(this, "You found the path!", Toast.LENGTH_LONG).show();
         }
-
-        adapter.notifyDataSetChanged();
-        setTvGameScore(gamePresenter.getGameScore(score, maxScore));
     }
 
     private int getRowCount(Context context) {
@@ -210,13 +214,13 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
             if(point.getGridType() != GridType.SELECTED)
                 point.setGridType(GridType.CLOSED);
         }
+        adapter.notifyDataSetChanged();
     }
 
     private void printPath(List<Pair> path) {
         for (Pair pair: path) {
             data[Integer.parseInt(pair.first.toString()) * numberOfColumns + Integer.parseInt(pair.second.toString())].setGridType(GridType.GAME_ACTUAL);
             adapter.notifyDataSetChanged();
-            Log.d("Some Tag", "(" + pair.first + ", " + pair.second + ")");
         }
     }
 
@@ -224,8 +228,45 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
     public void onOptionSelected(DifficultyLevel difficultyLevel) {
         this.difficultyLevel = difficultyLevel;
         SharedPrefsUtils.setGameLevel(this, difficultyLevel);
+        resetGameState();
         gamePresenter.reset();
         populateData();
         initUI();
+    }
+
+    private DifficultyLevelTimeout getDifficultyLevelTimeout(DifficultyLevel difficultyLevel) {
+        if(difficultyLevel == DifficultyLevel.EASY) {
+            return DifficultyLevelTimeout.EASY;
+        }else if(difficultyLevel == DifficultyLevel.HARD) {
+            return DifficultyLevelTimeout.HARD;
+        }else if(difficultyLevel == DifficultyLevel.MEDIUM) {
+            return DifficultyLevelTimeout.MEDIUM;
+        }else if(difficultyLevel == DifficultyLevel.CHALLENGE) {
+            return DifficultyLevelTimeout.CHALLENGE;
+        }else {
+            return DifficultyLevelTimeout.EASY;
+        }
+    }
+
+    private void initTimer(DifficultyLevelTimeout difficultyLevelTimeout) {
+        int INTERVAL = 1000;
+        int timeoutMillis = difficultyLevelTimeout.getTimeout() * 1000;
+        countDownTimer = new CountDownTimer(timeoutMillis, INTERVAL) {
+            @Override
+            public void onTick(long timeRemaining) {
+                setTvTimer(gamePresenter.getTimer(timeRemaining));
+            }
+
+            @Override
+            public void onFinish() {
+                markAllPositionsClosedExceptSelected(data);
+                isTimedOut = true;
+                checkGameState();
+            }
+        }.start();
+    }
+
+    private void stopCountDownTimer(CountDownTimer countDownTimer) {
+        countDownTimer.cancel();
     }
 }

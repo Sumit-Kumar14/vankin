@@ -49,8 +49,8 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder> {
                 holder.myTextView.setTextColor(Color.parseColor("#333333"));
                 break;
             case GAME_ACTUAL:
-                holder.myTextView.setBackgroundColor(Color.parseColor("#80CBC4"));
-                holder.myTextView.setTextColor(Color.parseColor("#333333"));
+                holder.myTextView.setBackgroundColor(Color.parseColor("#0288D1"));
+                holder.myTextView.setTextColor(Color.WHITE);
                 break;
             case PROBABLE:
                 holder.myTextView.setBackgroundColor(Color.parseColor("#33691E"));
