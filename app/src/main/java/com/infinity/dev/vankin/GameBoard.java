@@ -13,6 +13,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.infinity.dev.vankin.GamePresenter.GamePresenter;
 import com.infinity.dev.vankin.Model.DifficultyLevel;
 import com.infinity.dev.vankin.Model.DifficultyLevelTimeout;
@@ -47,6 +49,8 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
     private CountDownTimer countDownTimer;
     private int[][] arr;
 
+    private AdView mAdView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,6 +66,10 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
         populateData();
 
         initUI();
+
+        mAdView = findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
     }
 
     private void initUI() {
@@ -135,8 +143,6 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
         adapter = new GridAdapter(this, data);
         adapter.setClickListener(this);
         recyclerView.setAdapter(adapter);
-
-        //printPath(gamePresenter.getPath(arr, maxScore));
     }
 
     @Override
