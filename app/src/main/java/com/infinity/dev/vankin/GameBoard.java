@@ -1,8 +1,10 @@
 package com.infinity.dev.vankin;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -75,6 +77,24 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
         mAdView.loadAd(adRequest);
 
         initFullScreenAd();
+
+        if(!SharedPrefsUtils.isOnboardingDone(this)) {
+            if(countDownTimer != null) {
+                countDownTimer.cancel();
+            }
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            AlertDialog dialog = builder.setMessage(R.string.intro)
+                    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            if(countDownTimer != null) {
+                                countDownTimer.start();
+                            }
+                            dialog.dismiss();
+                        }
+                    }).create();
+            dialog.show();
+            SharedPrefsUtils.setOnboarding(this, true);
+        }
     }
 
     private void initUI() {

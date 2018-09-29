@@ -9,6 +9,7 @@ public class SharedPrefsUtils {
 
     private static final String GAME_PREF_FILE = "game_pref";
     private static final String GAME_LEVEL_KEY_NAME = "GAME_LEVEL";
+    private static final String ONBOARDING_KEY_NAME = "ONBOARDING";
 
     public static void setGameLevel(Context context, DifficultyLevel difficultyLevel) {
         SharedPreferences sharedPref = context.getSharedPreferences(GAME_PREF_FILE, Context.MODE_PRIVATE);
@@ -29,5 +30,15 @@ public class SharedPrefsUtils {
         }else {
             return DifficultyLevel.EASY;
         }
+    }
+
+    public static boolean isOnboardingDone(Context context) {
+        SharedPreferences sharedPref = context.getSharedPreferences(GAME_PREF_FILE, Context.MODE_PRIVATE);
+        return sharedPref.getBoolean(ONBOARDING_KEY_NAME, false);
+    }
+
+    public static void setOnboarding(Context context, boolean isOnboardingDone) {
+        SharedPreferences sharedPref = context.getSharedPreferences(GAME_PREF_FILE, Context.MODE_PRIVATE);
+        sharedPref.edit().putBoolean(ONBOARDING_KEY_NAME, isOnboardingDone).apply();
     }
 }
