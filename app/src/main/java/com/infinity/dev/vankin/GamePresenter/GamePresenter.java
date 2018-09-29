@@ -108,7 +108,6 @@ public class GamePresenter {
     public String getTimer(long timeDiff) {
         int seconds = (int)(timeDiff / 1000);
         int minutes = (seconds / 60);
-        int hours = minutes / 60;
-        return String.format("%02d", hours) + ":" + String.format("%02d", minutes % 60) + ":" + String.format("%02d", seconds % 60);
+        return String.format("%02d", minutes % 60) + ":" + String.format("%02d", seconds % 60);
     }
 }

@@ -13,8 +13,10 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
 import com.infinity.dev.vankin.GamePresenter.GamePresenter;
 import com.infinity.dev.vankin.Model.DifficultyLevel;
 import com.infinity.dev.vankin.Model.DifficultyLevelTimeout;
@@ -50,6 +52,7 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
     private int[][] arr;
 
     private AdView mAdView;
+    private InterstitialAd mInterstitialAd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +73,8 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
         mAdView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
+
+        initFullScreenAd();
     }
 
     private void initUI() {
@@ -238,6 +243,8 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
         gamePresenter.reset();
         populateData();
         initUI();
+
+        loadFullScreenAd();
     }
 
     private DifficultyLevelTimeout getDifficultyLevelTimeout(DifficultyLevel difficultyLevel) {
@@ -257,6 +264,9 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
     private void initTimer(DifficultyLevelTimeout difficultyLevelTimeout) {
         int INTERVAL = 1000;
         int timeoutMillis = difficultyLevelTimeout.getTimeout() * 1000;
+        if(countDownTimer != null) {
+            countDownTimer.cancel();
+        }
         countDownTimer = new CountDownTimer(timeoutMillis, INTERVAL) {
             @Override
             public void onTick(long timeRemaining) {
@@ -274,5 +284,35 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
 
     private void stopCountDownTimer(CountDownTimer countDownTimer) {
         countDownTimer.cancel();
+    }
+
+    private void initFullScreenAd() {
+        mInterstitialAd = new InterstitialAd(this);
+        mInterstitialAd.setAdUnitId(getString(R.string.test_interstitial_full_screen));
+        mInterstitialAd.loadAd(new AdRequest.Builder().build());
+
+        mInterstitialAd.setAdListener(new AdListener() {
+            @Override
+            public void onAdClosed() {
+                mInterstitialAd.loadAd(new AdRequest.Builder().build());
+                if(countDownTimer != null) {
+                    countDownTimer.start();
+                }
+            }
+
+            @Override
+            public void onAdOpened() {
+                if(countDownTimer != null) {
+                    countDownTimer.cancel();
+                }
+            }
+
+        });
+    }
+
+    private void loadFullScreenAd() {
+        if(mInterstitialAd.isLoaded()) {
+            mInterstitialAd.show();
+        }
     }
 }
