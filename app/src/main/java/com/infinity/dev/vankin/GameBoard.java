@@ -308,7 +308,7 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
 
     private void initFullScreenAd() {
         mInterstitialAd = new InterstitialAd(this);
-        mInterstitialAd.setAdUnitId(getString(R.string.test_interstitial_full_screen));
+        mInterstitialAd.setAdUnitId(getString(R.string.interstitial_full_screen));
         mInterstitialAd.loadAd(new AdRequest.Builder().build());
 
         mInterstitialAd.setAdListener(new AdListener() {

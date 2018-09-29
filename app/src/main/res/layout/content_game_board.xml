@@ -37,7 +37,7 @@
         android:layout_centerHorizontal="true"
         android:layout_alignParentBottom="true"
         ads:adSize="BANNER"
-        ads:adUnitId="@string/test_banner_home_footer">
+        ads:adUnitId="@string/banner_home_footer">
     </com.google.android.gms.ads.AdView>
 
 
