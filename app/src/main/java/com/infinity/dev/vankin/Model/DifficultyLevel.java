@@ -1,8 +1,8 @@
 package com.infinity.dev.vankin.Model;
 
 public enum DifficultyLevel {
-    EASY(2),
-    MEDIUM(4),
+    EASY(4),
+    MEDIUM(6),
     HARD(8),
     CHALLENGE(16);
 

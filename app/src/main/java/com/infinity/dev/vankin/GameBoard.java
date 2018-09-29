@@ -12,6 +12,7 @@ import android.util.Pair;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.infinity.dev.vankin.GamePresenter.GamePresenter;
 import com.infinity.dev.vankin.Model.DifficultyLevel;
@@ -143,11 +144,14 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
         adapter.setClickListener(this);
         recyclerView.setAdapter(adapter);
 
-        printPath(gamePresenter.getPath(arr, maxScore));
+        //printPath(gamePresenter.getPath(arr, maxScore));
     }
 
     @Override
     public void onItemClick(View view, int position) {
+
+        boolean isRightMoveAvailable = true;
+        boolean isBottomMoveAvailable = true;
 
         if(data[position].getGridType() == GridType.CLOSED || data[position].getGridType() == GridType.SELECTED)
             return;
@@ -161,11 +165,29 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
         int bottomPosition = position + numberOfColumns;
         int rightPosition = position + 1;
 
-        if((position + 1) % numberOfColumns != 0)
+        if((position + 1) % numberOfColumns != 0) {
             data[rightPosition].setGridType(GridType.PROBABLE);
+        }else {
+            isRightMoveAvailable = false;
+        }
 
-        if(bottomPosition < numberOfColumns * numberOfRows)
+        if(bottomPosition < numberOfColumns * numberOfRows) {
             data[bottomPosition].setGridType(GridType.PROBABLE);
+        }else {
+            isBottomMoveAvailable = false;
+        }
+
+        if(!isRightMoveAvailable && !isBottomMoveAvailable) {
+            if(score < maxScore) {
+                Toast.makeText(this, "No moves available! You loose", Toast.LENGTH_LONG).show();
+            }else {
+                Toast.makeText(this, "You found the path!", Toast.LENGTH_LONG).show();
+            }
+        }
+
+        if(score >= maxScore) {
+            Toast.makeText(this, "You found the path!", Toast.LENGTH_LONG).show();
+        }
 
         adapter.notifyDataSetChanged();
         setTvGameScore(gamePresenter.getGameScore(score, maxScore));
