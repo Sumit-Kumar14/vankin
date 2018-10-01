@@ -35,7 +35,11 @@ public class GamePresenter {
         if(mem[x][y] == 0) {
             int v1 = vankin(x + 1, y, arr);
             int v2 = vankin(x, y + 1, arr);
-            mem[x][y] = arr[x][y] + Math.max(v1, v2);
+            if(Math.max(v1, v2) + arr[x][y] < arr[x][y]){
+                mem[x][y] = arr[x][y];
+            }else {
+                mem[x][y] = arr[x][y] + Math.max(v1, v2);
+            }
         }
         return mem[x][y];
     }
@@ -45,6 +49,7 @@ public class GamePresenter {
 
         for(int i = 0; i < ROWS; i++) {
             for(int j = 0; j < COLUMNS; j++) {
+                mem = new int[ROWS][COLUMNS];
                 int next = vankin(i, j, arr);
                 if(next > maxScore) {
                     x = i;
@@ -57,16 +62,14 @@ public class GamePresenter {
     }
 
     private void updatePath(int arr[][], int x, int y, int sum, int currentSum, Stack<Pair<Integer, Integer>> pairs) {
-        if(x >= ROWS || y >= COLUMNS)
+        if(x < 0 || y < 0 || x >= ROWS || y >= COLUMNS)
             return;
 
         currentSum += arr[x][y];
         pairs.push(new Pair<>(x, y));
 
         if(currentSum == sum) {
-            for (Pair pair : pairs) {
-                gameBestPath.add(pair);
-            }
+            gameBestPath.addAll(pairs);
             return;
         }
 
