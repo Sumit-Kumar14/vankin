@@ -2,8 +2,10 @@ package com.infinity.dev.vankin;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -28,6 +30,8 @@ import com.infinity.dev.vankin.Model.Points;
 import java.util.List;
 import java.util.Random;
 
+import antonkozyriatskyi.circularprogressindicator.CircularProgressIndicator;
+
 public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClickListener, BottomSheetFragment.OnOptionSelected {
 
     private GridAdapter adapter;
@@ -42,10 +46,8 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
     private GamePresenter gamePresenter;
     private DifficultyLevel difficultyLevel;
 
-    private TextView tvGameLevel;
-    private TextView tvGameScore;
+    private CircularProgressIndicator circularProgressBar;
     private TextView tvTimer;
-    private ImageButton ibPause;
     private ImageButton ibReset;
     private boolean isRightMoveAvailable = true;
     private boolean isBottomMoveAvailable = true;
@@ -98,10 +100,8 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
     }
 
     private void initUI() {
-        tvGameLevel = findViewById(R.id.tv_game_level);
-        tvGameScore = findViewById(R.id.tv_score);
+        circularProgressBar = findViewById(R.id.progress_bar);
         tvTimer = findViewById(R.id.tv_timer);
-        ibPause = findViewById(R.id.ib_pause);
         ibReset = findViewById(R.id.ib_reset);
 
         ibReset.setOnClickListener(new View.OnClickListener() {
@@ -113,22 +113,33 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
             }
         });
 
-        setTvGameLevel(gamePresenter.getGameLevel(difficultyLevel));
-        setTvGameScore(gamePresenter.getGameScore(score, maxScore));
+        setProgressBarMax(maxScore);
+        setGameProgress(score);
 
         initTimer(getDifficultyLevelTimeout(difficultyLevel));
     }
 
-    private void setTvGameLevel(String gameLevel) {
-        tvGameLevel.setText(gameLevel);
+    private void setGameProgress(int gameScore) {
+        circularProgressBar.setCurrentProgress(gameScore);
+        circularProgressBar.setProgressTextAdapter(new CircularProgressIndicator.ProgressTextAdapter() {
+            @NonNull
+            @Override
+            public String formatText(double v) {
+                return (int)v + "/" + maxScore;
+            }
+        });
     }
 
-    private void setTvGameScore(String gameScore) {
-        tvGameScore.setText(gameScore);
+    private void setProgressBarMax(int max) {
+        circularProgressBar.setMaxProgress(max);
     }
 
     private void setTvTimer(String timer) {
         tvTimer.setText(timer);
+    }
+
+    private void setTvTimerColor(int color) {
+        tvTimer.setTextColor(color);
     }
 
     private void populateData() {
@@ -200,7 +211,7 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
         checkGameState();
 
         adapter.notifyDataSetChanged();
-        setTvGameScore(gamePresenter.getGameScore(score, maxScore));
+        setGameProgress(score);
     }
 
     private void resetGameState() {
@@ -236,7 +247,7 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
 
     private int getColumnCount(Context context) {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
-        float dpWidth = displayMetrics.heightPixels / displayMetrics.density - 120;
+        float dpWidth = displayMetrics.heightPixels / displayMetrics.density - 140;
         return (int) (dpWidth / 50);
     }
 
@@ -291,6 +302,11 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
             @Override
             public void onTick(long timeRemaining) {
                 setTvTimer(gamePresenter.getTimer(timeRemaining));
+                if(timeRemaining <= 5000) {
+                    setTvTimerColor(Color.parseColor("#C62828"));
+                }else {
+                    setTvTimerColor(Color.parseColor("#1B5E20"));
+                }
             }
 
             @Override
