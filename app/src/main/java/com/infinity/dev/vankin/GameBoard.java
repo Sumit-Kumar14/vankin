@@ -47,7 +47,7 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
     private DifficultyLevel difficultyLevel;
 
     private CircularProgressIndicator circularProgressBar;
-    private TextView tvTimer;
+    private TextView tvTimer, tvCurrentScore;
     private ImageButton ibReset;
     private boolean isRightMoveAvailable = true;
     private boolean isBottomMoveAvailable = true;
@@ -102,6 +102,7 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
     private void initUI() {
         circularProgressBar = findViewById(R.id.progress_bar);
         tvTimer = findViewById(R.id.tv_timer);
+        tvCurrentScore = findViewById(R.id.textView_score);
         ibReset = findViewById(R.id.ib_reset);
 
         ibReset.setOnClickListener(new View.OnClickListener() {
@@ -125,7 +126,9 @@ public class GameBoard extends AppCompatActivity implements GridAdapter.ItemClic
             @NonNull
             @Override
             public String formatText(double v) {
-                return (int)v + "/" + maxScore;
+                String currentScoreString = (int)v + "/" + maxScore;
+                tvCurrentScore.setText(currentScoreString);
+                return currentScoreString;
             }
         });
     }

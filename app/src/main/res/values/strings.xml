@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Count Max</string>
     <string name="action_settings">Settings</string>
+    <string name="app_name_short">Vankin</string>
 
     <string name="intro">Get maximum score by choosing any item. Allowed movements are right and bottom.</string>
 
